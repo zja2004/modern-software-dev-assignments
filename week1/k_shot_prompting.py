@@ -6,11 +6,11 @@ load_dotenv()
 
 NUM_RUNS_TIMES = 5
 
-# TODO: Fill this in!
+# TODO: 填在这里！
 YOUR_SYSTEM_PROMPT = ""
 
 USER_PROMPT = """
-Reverse the order of letters in the following word. Only output the reversed word, no other text:
+反转以下单词中的字母顺序。仅输出反转后的单词，不要输出其他文本：
 
 httpstatus
 """
@@ -19,9 +19,9 @@ httpstatus
 EXPECTED_OUTPUT = "sutatsptth"
 
 def test_your_prompt(system_prompt: str) -> bool:
-    """Run the prompt up to NUM_RUNS_TIMES and return True if any output matches EXPECTED_OUTPUT.
+    """运行提示词最多 NUM_RUNS_TIMES 次，如果任何输出与 EXPECTED_OUTPUT 匹配，则返回 True。
 
-    Prints "SUCCESS" when a match is found.
+    找到匹配项时打印 "SUCCESS"。
     """
     for idx in range(NUM_RUNS_TIMES):
         print(f"Running test {idx + 1} of {NUM_RUNS_TIMES}")

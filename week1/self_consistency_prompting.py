@@ -8,26 +8,25 @@ load_dotenv()
 
 NUM_RUNS_TIMES = 5
 
-# TODO: Fill this in! Try to get as close to 100% correctness across all runs as possible.
+# TODO: 填在这里！尝试在所有运行中尽可能接近 100% 的正确率。
 YOUR_SYSTEM_PROMPT = ""
 
 USER_PROMPT = """
-Solve this problem, then give the final answer on the last line as "Answer: <number>".
+解决这个问题，然后在最后一行给出最终答案，格式为 "Answer: <number>"。
 
-Henry made two stops during his 60-mile bike trip. He first stopped after 20
-miles. His second stop was 15 miles before the end of the trip. How many miles
-did he travel between his first and second stops?
+亨利在他 60 英里的自行车旅行中停了两次。他第一次在 20 英里后停下。
+他的第二次停靠是在旅程结束前 15 英里。在第一次和第二次停靠之间他行驶了多少英里？
 """
 
 EXPECTED_OUTPUT = "Answer: 25"
 
 
 def extract_final_answer(text: str) -> str:
-    """Extract the final 'Answer: ...' line from a verbose reasoning trace.
+    """从详细的推理轨迹中提取最后的 'Answer: ...' 行。
 
-    - Finds the LAST line that starts with 'Answer:' (case-insensitive)
-    - Normalizes to 'Answer: <number>' when a number is present
-    - Falls back to returning the matched content if no number is detected
+    - 查找以 'Answer:' 开头的最后一行（不区分大小写）
+    - 当存在数字时，规范化为 'Answer: <number>'
+    - 如果未检测到数字，则退回返回匹配的内容
     """
     matches = re.findall(r"(?mi)^\s*answer\s*:\s*(.+)\s*$", text)
     if matches:
@@ -40,9 +39,9 @@ def extract_final_answer(text: str) -> str:
 
 
 def test_your_prompt(system_prompt: str) -> bool:
-    """Run the prompt NUM_RUNS_TIMES, majority-vote on the extracted 'Answer: ...' lines.
+    """运行提示词 NUM_RUNS_TIMES 次，对提取的 'Answer: ...' 行进行多数表决。
 
-    Prints "SUCCESS" if the majority answer equals EXPECTED_OUTPUT.
+    如果多数答案等于 EXPECTED_OUTPUT，则打印 "SUCCESS"。
     """
     answers: list[str] = []
     for idx in range(NUM_RUNS_TIMES):
@@ -72,7 +71,7 @@ def test_your_prompt(system_prompt: str) -> bool:
         print("SUCCESS")
         return True
 
-    # Print distribution for debugging when majority does not match expected
+    # 当多数派不匹配预期结果时，打印分布情况以供调试
     print(f"Expected output: {EXPECTED_OUTPUT}")
     print("Answer distribution:")
     for answer, count in counts.most_common():

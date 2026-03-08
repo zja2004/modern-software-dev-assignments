@@ -9,22 +9,22 @@ load_dotenv()
 NUM_RUNS_TIMES = 1
 
 SYSTEM_PROMPT = """
-You are a coding assistant. Output ONLY a single fenced Python code block that defines
-the function is_valid_password(password: str) -> bool. No prose or comments.
-Keep the implementation minimal.
+你是一个编码助手。仅输出一个带有围栏的 Python 代码块，定义
+函数 is_valid_password(password: str) -> bool。不要输出任何说明或注释。
+保持实现尽可能简洁。
 """
 
-# TODO: Fill this in!
+# TODO: 填在这里！
 YOUR_REFLEXION_PROMPT = ""
 
 
-# Ground-truth test suite used to evaluate generated code
+# 用于评估生成代码的标准测试套件
 SPECIALS = set("!@#$%^&*()-_")
 TEST_CASES: List[Tuple[str, bool]] = [
-    ("Password1!", True),       # valid
-    ("password1!", False),      # missing uppercase
-    ("Password!", False),       # missing digit
-    ("Password1", False),       # missing special
+    ("Password1!", True),       # valid -> 有效
+    ("password1!", False),      # missing uppercase -> 缺少大写字母
+    ("Password!", False),       # missing digit -> 缺少数字
+    ("Password1", False),       # missing special -> 缺少特殊字符
 ]
 
 
@@ -40,7 +40,7 @@ def extract_code_block(text: str) -> str:
 
 def load_function_from_code(code_str: str) -> Callable[[str], bool]:
     namespace: dict = {}
-    exec(code_str, namespace)  # noqa: S102 (executing controlled code from model for exercise)
+    exec(code_str, namespace)  # noqa: S102 (出于练习目的，执行来自模型的受控代码)
     func = namespace.get("is_valid_password")
     if not callable(func):
         raise ValueError("No callable is_valid_password found in generated code")
@@ -57,7 +57,7 @@ def evaluate_function(func: Callable[[str], bool]) -> Tuple[bool, List[str]]:
             continue
 
         if result != expected:
-            # Compute diagnostic based on ground-truth rules
+            # 根据标准测试规则计算诊断结果
             reasons = []
             if len(pw) < 8:
                 reasons.append("length < 8")
@@ -92,9 +92,9 @@ def generate_initial_function(system_prompt: str) -> str:
 
 
 def your_build_reflexion_context(prev_code: str, failures: List[str]) -> str:
-    """TODO: Build the user message for the reflexion step using prev_code and failures.
+    """TODO: 使用 prev_code 和 failures 构建反射（reflexion）步骤的用户消息。
 
-    Return a string that will be sent as the user content alongside the reflexion system prompt.
+    返回一个字符串，该字符串将作为用户内容与反射系统提示词一起发送。
     """
     return ""
 
@@ -123,7 +123,7 @@ def run_reflexion_flow(
     reflexion_prompt: str,
     build_context: Callable[[str, List[str]], str],
 ) -> bool:
-    # 1) Generate initial function
+    # 1) 生成初始函数
     initial_code = generate_initial_function(system_prompt)
     print("Initial code:\n" + initial_code)
     func = load_function_from_code(initial_code)
@@ -134,7 +134,7 @@ def run_reflexion_flow(
     else:
         print(f"FAILURE (initial implementation failed some tests): {failures}")
 
-    # 2) Single reflexion iteration
+    # 2) 单个反射迭代
     improved_code = apply_reflexion(reflexion_prompt, build_context, initial_code, failures)
     print("\nImproved code:\n" + improved_code)
     improved_func = load_function_from_code(improved_code)

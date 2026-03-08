@@ -2,12 +2,28 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from pydantic import BaseModel
+from datetime import datetime
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = BASE_DIR / "data"
 DB_PATH = DATA_DIR / "app.db"
+
+
+class Note(BaseModel):
+    id: int
+    content: str
+    created_at: str
+
+class ActionItem(BaseModel):
+    id: int
+    note_id: Optional[int]
+    text: str
+    done: bool
+    created_at: str
+
 
 
 def ensure_data_directory_exists() -> None:
@@ -61,7 +77,7 @@ def list_notes() -> list[sqlite3.Row]:
     with get_connection() as connection:
         cursor = connection.cursor()
         cursor.execute("SELECT id, content, created_at FROM notes ORDER BY id DESC")
-        return list(cursor.fetchall())
+        return [Note(id=r["id"], content=r["content"], created_at=r["created_at"]) for r in cursor.fetchall()]
 
 
 def get_note(note_id: int) -> Optional[sqlite3.Row]:
@@ -72,6 +88,8 @@ def get_note(note_id: int) -> Optional[sqlite3.Row]:
             (note_id,),
         )
         row = cursor.fetchone()
+        if row:
+            return Note(id=row["id"], content=row["content"], created_at=row["created_at"])
         return row
 
 
@@ -101,7 +119,8 @@ def list_action_items(note_id: Optional[int] = None) -> list[sqlite3.Row]:
                 "SELECT id, note_id, text, done, created_at FROM action_items WHERE note_id = ? ORDER BY id DESC",
                 (note_id,),
             )
-        return list(cursor.fetchall())
+        rows = cursor.fetchall()
+        return [ActionItem(id=r["id"], note_id=r["note_id"], text=r["text"], done=bool(r["done"]), created_at=r["created_at"]) for r in rows]
 
 
 def mark_action_item_done(action_item_id: int, done: bool) -> None:

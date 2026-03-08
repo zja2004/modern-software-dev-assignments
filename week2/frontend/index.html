@@ -24,6 +24,13 @@
     <div class="row">
       <label class="row"><input id="save_note" type="checkbox" checked /> Save as note</label>
       <button id="extract">Extract</button>
+      <button id="extract-llm" style="background: linear-gradient(90deg, #a855f7, #ec4899); color: white; border: none; border-radius: 4px;">Extract LLM 🤖</button>
+    </div>
+
+    <div style="margin-top: 2rem; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
+      <h2 style="font-size: 1.25rem;">Previously Saved Notes</h2>
+      <button id="list-notes">List Notes</button>
+      <div class="items" id="notes-list"></div>
     </div>
 
     <div class="items" id="items"></div>
@@ -67,7 +74,67 @@
         }
       });
 
-    </script>
+      // TODO 4: Extract LLM Button functionality
+      const btnLlm = $('#extract-llm');
+      btnLlm.addEventListener('click', async () => {
+        const text = $('#text').value;
+        const save = $('#save_note').checked;
+        itemsEl.textContent = 'Extracting with LLM...';
+        try {
+          const res = await fetch('/action-items/extract-llm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, save_note: save }),
+          });
+          if (!res.ok) throw new Error('Request failed');
+          const data = await res.json();
+          if (!data.items || data.items.length === 0) {
+            itemsEl.innerHTML = '<p class="muted">No action items found.</p>';
+            return;
+          }
+          itemsEl.innerHTML = data.items.map(it => (
+            `<div class="item"><input type="checkbox" data-id="${it.id}" /> <span>${it.text}</span></div>`
+          )).join('');
+          itemsEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', async (e) => {
+              const id = e.target.getAttribute('data-id');
+              await fetch(`/action-items/${id}/done`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ done: e.target.checked }),
+              });
+            });
+          });
+        } catch (err) {
+          console.error(err);
+          itemsEl.textContent = 'Error extracting items with LLM';
+        }
+      });
+
+      // TODO 4: List Notes Button functionality
+      const btnNotes = $('#list-notes');
+      const notesEl = $('#notes-list');
+      btnNotes.addEventListener('click', async () => {
+        notesEl.textContent = 'Fetching notes...';
+        try {
+          const res = await fetch('/notes');
+          if (!res.ok) throw new Error('Request failed');
+          const data = await res.json();
+          if (!data || data.length === 0) {
+            notesEl.innerHTML = '<p class="muted">No notes found.</p>';
+            return;
+          }
+          notesEl.innerHTML = data.map(it => (
+            `<div style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
+               <p style="margin: 0; font-family: monospace; white-space: pre-wrap;">${it.content}</p>
+               <small class="muted">Date: ${it.created_at}</small>
+             </div>`
+          )).join('');
+        } catch (err) {
+          console.error(err);
+          notesEl.textContent = 'Error fetching notes';
+        }
+      });
   </body>
   </html>
 

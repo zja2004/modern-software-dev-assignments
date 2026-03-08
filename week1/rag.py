@@ -27,21 +27,21 @@ def load_corpus_from_files(paths: List[str]) -> List[str]:
     return corpus
 
 
-# Load corpus from external files (simple API docs). If missing, fall back to inline snippet
+# 从外部文件加载语料库（简单的 API 文档）。如果缺失，回退到内联片段
 CORPUS: List[str] = load_corpus_from_files(DATA_FILES)
 
 QUESTION = (
-    "Write a Python function `fetch_user_name(user_id: str, api_key: str) -> str` that calls the documented API "
-    "to fetch a user by id and returns only the user's name as a string."
+    "编写一个 Python 函数 `fetch_user_name(user_id: str, api_key: str) -> str`，调用文档中的 API "
+    "通过 id 获取用户，并仅以字符串形式返回用户的名字。"
 )
 
 
-# TODO: Fill this in!
+# TODO: 填在这里！
 YOUR_SYSTEM_PROMPT = ""
 
 
-# For this simple example
-# For this coding task, validate by required snippets rather than exact string
+# 对于这个简单例子
+# 对于这个编码任务，通过必需的代码片段进行验证，而不是完全相同的字符串
 REQUIRED_SNIPPETS = [
     "def fetch_user_name(",
     "requests.get",
@@ -52,9 +52,9 @@ REQUIRED_SNIPPETS = [
 
 
 def YOUR_CONTEXT_PROVIDER(corpus: List[str]) -> List[str]:
-    """TODO: Select and return the relevant subset of documents from CORPUS for this task.
+    """TODO: 从 CORPUS 中选择并返回与此任务相关的文档子集。
 
-    For example, return [] to simulate missing context, or [corpus[0]] to include the API docs.
+    例如，返回 [] 以模拟缺少上下文，或返回 [corpus[0]] 以包含 API 文档。
     """
     return []
 
@@ -65,24 +65,24 @@ def make_user_prompt(question: str, context_docs: List[str]) -> str:
     else:
         context_block = "(no context provided)"
     return (
-        f"Context (use ONLY this information):\n{context_block}\n\n"
+        f"Context (仅使用此信息):\n{context_block}\n\n"
         f"Task: {question}\n\n"
         "Requirements:\n"
-        "- Use the documented Base URL and endpoint.\n"
-        "- Send the documented authentication header.\n"
-        "- Raise for non-200 responses.\n"
-        "- Return only the user's name string.\n\n"
-        "Output: A single fenced Python code block with the function and necessary imports.\n"
+        "- 使用文档中说明的 Base URL 和端点 (endpoint)。\n"
+        "- 发送文档中说明的认证请求头 (authentication header)。\n"
+        "- 如果响应不是 200，则抛出异常 (Raise)。\n"
+        "- 只返回用户的名字字符串。\n\n"
+        "Output: 一个包含函数和必要导入 (imports) 的单独的被代码块包围的 Python 代码块。\n"
     )
 
 
 def extract_code_block(text: str) -> str:
-    """Extract the last fenced Python code block, or any fenced code block, else return text."""
-    # Try ```python ... ``` first
+    """提取最后一个带有围栏的 Python 代码块，或任何带有围栏的代码块，否则返回文本。"""
+    # 首先尝试 ```python ... ```
     m = re.findall(r"```python\n([\s\S]*?)```", text, flags=re.IGNORECASE)
     if m:
         return m[-1].strip()
-    # Fallback to any fenced code block
+    # 回退到任何带有围栏的代码块
     m = re.findall(r"```\n([\s\S]*?)```", text)
     if m:
         return m[-1].strip()
@@ -90,7 +90,7 @@ def extract_code_block(text: str) -> str:
 
 
 def test_your_prompt(system_prompt: str, context_provider: Callable[[List[str]], List[str]]) -> bool:
-    """Run up to NUM_RUNS_TIMES and return True if any output matches EXPECTED_OUTPUT."""
+    """运行最多 NUM_RUNS_TIMES 次，如果任何输出与 EXPECTED_OUTPUT 匹配，则返回 True。"""
     context_docs = context_provider(CORPUS)
     user_prompt = make_user_prompt(QUESTION, context_docs)
 

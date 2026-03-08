@@ -5,7 +5,9 @@ import re
 from typing import List
 import json
 from typing import Any
-from ollama import chat
+from google import genai
+from pydantic import BaseModel
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -42,10 +44,12 @@ def extract_action_items(text: str) -> List[str]:
             cleaned = BULLET_PREFIX_PATTERN.sub("", line)
             cleaned = cleaned.strip()
             # Trim common checkbox markers
+            # 移除常见的复选框标记
             cleaned = cleaned.removeprefix("[ ]").strip()
             cleaned = cleaned.removeprefix("[todo]").strip()
             extracted.append(cleaned)
     # Fallback: if nothing matched, heuristically split into sentences and pick imperative-like ones
+    # 退回方案：如果没有任何匹配项，基于启发式算法切割为句子，并挑选出类似祈使句的句子
     if not extracted:
         sentences = re.split(r"(?<=[.!?])\s+", text.strip())
         for sentence in sentences:
@@ -55,6 +59,7 @@ def extract_action_items(text: str) -> List[str]:
             if _looks_imperative(s):
                 extracted.append(s)
     # Deduplicate while preserving order
+    # 在保留顺序的同时去重
     seen: set[str] = set()
     unique: List[str] = []
     for item in extracted:
@@ -66,12 +71,68 @@ def extract_action_items(text: str) -> List[str]:
     return unique
 
 
+class ActionItemsSchema(BaseModel):
+    items: List[str]
+
+
+def extract_action_items_llm(text: str) -> List[str]:
+    """
+    TODO 1: Extract action items using a Large Language Model (Gemini).
+    """
+    if not text.strip():
+        return []
+
+    system_prompt = """
+You are an expert action item extractor.
+Given the following meeting notes or text, extract all actionable tasks, to-dos, or assignments.
+Ignore general narrative sentences.
+Return ONLY a strictly formatted JSON object with a single key "items" that maps to a list of strings.
+Example output format:
+{
+  "items": [
+    "Set up the database",
+    "Email the client for feedback"
+  ]
+}
+"""
+    
+    # Use API key from environment, optionally you can pass it to the Client explicitly
+    api_key = os.environ.get("GEMINI_API_KEY") 
+    try:
+        # Initialize the client. This uses GEMINI_API_KEY from environment variables by default.
+        client = genai.Client()
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=text,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=ActionItemsSchema,
+                system_instruction=system_prompt,
+                temperature=0.0
+            ),
+        )
+
+        content = response.text
+        if not content:
+            return []
+            
+        data = json.loads(content)
+        return data.get("items", [])
+    except Exception as e:
+        print(f"LLM extraction error: {e}")
+        # Fallback to the heuristic rules if LLM fails
+        return extract_action_items(text)
+
+
+
 def _looks_imperative(sentence: str) -> bool:
     words = re.findall(r"[A-Za-z']+", sentence)
     if not words:
         return False
     first = words[0]
     # Crude heuristic: treat these as imperative starters
+    # 粗略的启发式：将这些词视作祈使句的开头
     imperative_starters = {
         "add",
         "create",
