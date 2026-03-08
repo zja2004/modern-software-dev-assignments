@@ -106,7 +106,7 @@ Example output format:
         )
         
         response = client.chat.completions.create(
-            model='kimi-k2-turbo-preview',
+            model='kimi-k2.5',
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": text}
