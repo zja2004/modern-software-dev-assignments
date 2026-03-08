@@ -21,13 +21,13 @@ def test_extract_bullets_and_checkboxes():
     assert "Write tests" in items
 
 
-@patch("week2.app.services.extract.genai.Client")
+@patch("week2.app.services.extract.OpenAI")
 def test_extract_llm_bullet_lists(mock_client_class):
     mock_client = MagicMock()
     mock_client_class.return_value = mock_client
     mock_response = MagicMock()
-    mock_response.text = '{"items": ["Set up database", "Write tests"]}'
-    mock_client.models.generate_content.return_value = mock_response
+    mock_response.choices[0].message.content = '{"items": ["Set up database", "Write tests"]}'
+    mock_client.chat.completions.create.return_value = mock_response
 
     text = """
     Notes from meeting:
@@ -42,19 +42,19 @@ def test_extract_llm_bullet_lists(mock_client_class):
     assert "Write tests" in items
 
 
-@patch("week2.app.services.extract.genai.Client")
+@patch("week2.app.services.extract.OpenAI")
 def test_extract_llm_empty_input(mock_client_class):
     items = extract_action_items_llm("   ")
     assert len(items) == 0
     mock_client_class.assert_not_called()
 
 
-@patch("week2.app.services.extract.genai.Client")
+@patch("week2.app.services.extract.OpenAI")
 def test_extract_llm_fallback(mock_client_class):
     mock_client = MagicMock()
     mock_client_class.return_value = mock_client
     # Simulate an LLM error to trigger the fallback heuristic rules
-    mock_client.models.generate_content.side_effect = Exception("API Error")
+    mock_client.chat.completions.create.side_effect = Exception("API Error")
 
     text = """
     - Fix the login bug

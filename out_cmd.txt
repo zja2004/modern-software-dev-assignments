@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.12, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\zzzjj\Desktop\modern-software-dev-assignments
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+________________ ERROR collecting week2/tests/test_extract.py _________________
+ImportError while importing test module 'C:\Users\zzzjj\Desktop\modern-software-dev-assignments\week2\tests\test_extract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3312.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+week2\tests\test_extract.py:4: in <module>
+    from ..app.services.extract import extract_action_items, extract_action_items_llm
+week2\app\services\extract.py:10: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+=========================== short test summary info ===========================
+ERROR week2/tests/test_extract.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0.75s ===============================

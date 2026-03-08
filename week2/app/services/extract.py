@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import os
 import re
-from typing import List
-import json
 from typing import Any
-from google import genai
+import json
+from openai import OpenAI
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
@@ -96,24 +95,27 @@ Example output format:
 }
 """
     
-    # Use API key from environment, optionally you can pass it to the Client explicitly
-    api_key = os.environ.get("GEMINI_API_KEY") 
+    # Use API key directly from user request, or fallback to environment variable
+    api_key = os.environ.get("MOONSHOT_API_KEY", "sk-WDqyiDQEfroOwfEfDlIyMCf4mpIyFzGQtuZYyz2bjifP8J43") 
+    
     try:
-        # Initialize the client. This uses GEMINI_API_KEY from environment variables by default.
-        client = genai.Client()
+        # Initialize the client using Moonshot API settings
+        client = OpenAI(
+            api_key=api_key,
+            base_url="https://api.moonshot.cn/v1",
+        )
         
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=text,
-            config=genai.types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=ActionItemsSchema,
-                system_instruction=system_prompt,
-                temperature=0.0
-            ),
+        response = client.chat.completions.create(
+            model='kimi-k2-turbo-preview',
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text}
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.0
         )
 
-        content = response.text
+        content = response.choices[0].message.content
         if not content:
             return []
             
